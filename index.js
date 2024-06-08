@@ -81,7 +81,7 @@ app.put("/getting/pdf/", async (request, response) => {
 
 app.put("/all/pdf/", async (request, response) => {
     const {sort} = request.body;
-    const checkUserQuery = `SELECT * FROM files ORDER BY created_at ${sort == undefined ? "ASC" : sort};`;
+    const checkUserQuery = `SELECT * FROM fileDetails ORDER BY created_at ${sort == undefined ? "ASC" : sort};`;
     connection.query(checkUserQuery, async(err, result) => {
         if (err) throw err;
         else {
@@ -92,7 +92,7 @@ app.put("/all/pdf/", async (request, response) => {
 
 app.put("/upload/pdf", async (request, response) => {
     const {filename, contentType, dateTime} = request.body;
-    const checkUserQuery = `SELECT * FROM files WHERE filename = '${filename.slice(0,-4)}';`;
+    const checkUserQuery = `SELECT * FROM fileDetails WHERE filename = '${filename.slice(0,-4)}';`;
     connection.query(checkUserQuery, async(err, result) => {
         if (err) throw err;
         else {
@@ -106,7 +106,7 @@ app.put("/upload/pdf", async (request, response) => {
             }
             else {
                 const query = `
-                            INSERT INTO files (filename, created_at)
+                            INSERT INTO fileDetails (filename, created_at)
                             VALUES (
                                 '${filename.slice(0,-4)}',
                                 '${dateTime}'
