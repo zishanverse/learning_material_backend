@@ -1,0 +1,21 @@
+###
+PUT http://localhost:4000/getting/pdf/
+Content-Type: application/json
+
+{
+    "name": "new.pdf"
+}
+
+###
+GET http://localhost:4000/all/pdf/
+
+
+###
+PUT http://localhost:4000/upload/pdf/
+Content-Type: application/json
+
+{
+    "filename": "new4.pdf",
+    "contentType": "pdf",
+    "dateTime": "06-06-2024"
+}
