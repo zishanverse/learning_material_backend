@@ -104,13 +104,17 @@ app.put("/upload/pdf", async (request, response) => {
                 response.status(400);
                 response.send("invalid file name");
             }
+            else if (tag == undefined) {
+                response.status(400);
+                response.send("invalid tag name");
+            }
             else {
                 const query = `
                             INSERT INTO fileDetails (filename, created_at, tag_name)
                             VALUES (
                                 '${filename.slice(0,-4)}',
                                 '${dateTime}',
-                                '${tag}'
+                                '${tag.toLoweCase()}'
                             );`;
                         connection.query(query, async(err, result) => {
                             if (err) throw err;
@@ -127,7 +131,7 @@ app.get('/search', (req, res) => {
       return res.status(400).json({ error: 'A search term is required.' });
     }
     else if (tag !== undefined && name !== undefined) {
-        const query = `SELECT * FROM fileDetails WHERE tag_name = '${tag}' AND filname= '${name}' ;`;
+        const query = `SELECT * FROM fileDetails WHERE tag_name = '${tag.toLowerCase()}' AND filname= '${name}' ;`;
         connection.query(query, (err, results) => {
         if (err) {
             return res.status(500).json({ error: 'Database query error.' });
@@ -147,7 +151,7 @@ app.get('/search', (req, res) => {
         });
     }else {
 
-        const query = `SELECT * FROM fileDetails WHERE tag_name = ${tag};`;
+        const query = `SELECT * FROM fileDetails WHERE tag_name = ${tag.toLowerCase()};`;
         connection.query(query, (err, results) => {
           if (err) {
             return res.status(500).json({ error: 'Database query error.' });
