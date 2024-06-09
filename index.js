@@ -91,7 +91,7 @@ app.put("/all/pdf/", async (request, response) => {
 });
 
 app.put("/upload/pdf", async (request, response) => {
-    const {filename, contentType, dateTime} = request.body;
+    const {filename, contentType, dateTime,tag} = request.body;
     const checkUserQuery = `SELECT * FROM fileDetails WHERE filename = '${filename.slice(0,-4)}';`;
     connection.query(checkUserQuery, async(err, result) => {
         if (err) throw err;
@@ -106,10 +106,11 @@ app.put("/upload/pdf", async (request, response) => {
             }
             else {
                 const query = `
-                            INSERT INTO fileDetails (filename, created_at)
+                            INSERT INTO fileDetails (filename, created_at, tag_name)
                             VALUES (
                                 '${filename.slice(0,-4)}',
-                                '${dateTime}'
+                                '${dateTime}',
+                                '${tag}'
                             );`;
                         connection.query(query, async(err, result) => {
                             if (err) throw err;
@@ -119,3 +120,41 @@ app.put("/upload/pdf", async (request, response) => {
         }
     });
 });
+
+app.get('/search', (req, res) => {
+    const {tag, name} = req.query;
+    if (!tag && !name) {
+      return res.status(400).json({ error: 'A search term is required.' });
+    }
+    else if (tag !== undefined && name !== undefined) {
+        const query = `SELECT * FROM fileDetails WHERE tag_name = '${tag}' AND filname= '${name}' ;`;
+        connection.query(query, (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: 'Database query error.' });
+        }
+    
+        res.json(results);
+        });
+    }
+    else if (tag === undefined && name !== undefined) {
+        const query = `SELECT * FROM fileDetails WHERE filename = ${name};`;
+        connection.query(query, (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: 'Database query error.' });
+        }
+    
+        res.json(results);
+        });
+    }else {
+
+        const query = `SELECT * FROM fileDetails WHERE tag_name = ${tag};`;
+        connection.query(query, (err, results) => {
+          if (err) {
+            return res.status(500).json({ error: 'Database query error.' });
+          }
+      
+          res.json(results);
+        });
+    }
+  
+  });
