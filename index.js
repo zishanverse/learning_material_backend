@@ -98,12 +98,11 @@ app.put("/getting/pdf/", async (request, response) => {
     response.send(await getObjectUrl(name));
 });
 
-app.put("/all/pdf/", async (request, response) => {
-    const {sort} = request.body;
+app.get("/all/pdf/", async (request, response) => {
+    const {sort} = request.query;
     const collection = db.collection('fileDetails');
-    const result  = await collection.find().sort({created_at: 1}).toArray();
-    console.log(result);
-    
+    const result  = await collection.find().sort({created_at: parseInt(sort)}).toArray();
+    response.send(result);
 });
 
 app.put("/upload/pdf", async (request, response) => {
