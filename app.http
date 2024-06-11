@@ -7,15 +7,17 @@ Content-Type: application/json
 }
 
 ###
-GET http://localhost:4000/all/pdf/
+PUT http://localhost:4000/all/pdf/
 
 
 ###
-PUT https://learning-material-backend.onrender.com/upload/pdf/
+PUT http://localhost:4000/upload/pdf/
 Content-Type: application/json
 
 {
     "filename": "new.pdf",
     "contentType": "pdf",
-    "dateTime": "06-06-2024"
+    "dateTime": "06-06-2024",
+    "tags": ["math", "class-10"],
+    "size": "7mb"
 }

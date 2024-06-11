@@ -5,9 +5,13 @@ const mysql = require('mysql2');
 const { S3Client, GetObjectCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
 const {getSignedUrl} = require("@aws-sdk/s3-request-presigner");
 const express = require("express");
+const { MongoClient } = require('mongodb');
+const uri = process.env.MONGODB;
+
 
 const app = express();
 app.use(express.json());
+
 
 app.use(
     cors({  
@@ -27,24 +31,33 @@ app.use((req, res, next) => {
   });
 
 
-const url = `mysql://${process.env.MYSQLUSER}:${process.env.MYSQLPASSWORD}@${process.env.MYSQLHOST}:${process.env.MYSQLPORT}/${process.env.MYSQLDATABASE}`
 
-const connection = mysql.createConnection(url);
 
-  // Connect to MySQL
-connection.connect((err) => {
-    if (err) {
-      console.error('Error connecting to MySQL: ' + err.stack);
-      return;
+
+//database connection
+const dbClient =  new MongoClient(uri);
+async function connect() {
+    try {
+      // Connect to the MongoDB cluster
+      await dbClient.connect();
+      console.log('Connected to the MongoDB cluster');
+    } catch (error) {
+      console.error('Error connecting to the MongoDB cluster', error);
     }
-    console.log('Connected to MySQL as id ' + connection.threadId);
+  }
+  connect().then(() => {
     app.listen(port, () => {
-        console.log("server is running... :)");
-      });
-    
+        console.log(`server is running on PORT ${port}`);
+    });
 });
 
+const db = dbClient.db('learning-platform');
 
+
+
+
+
+//aws s3 connetion
 const client = new S3Client({ region: "ap-south-1", credentials: {
     accessKeyId: process.env.ACCESSID,
     secretAccessKey: process.env.SECRETKEY
@@ -70,6 +83,12 @@ async function putObjectUrl(filename, contentType) {
     return url;
 }
 
+
+
+
+
+
+// Apis 
 app.put("/getting/pdf/", async (request, response) => {
     const {name} = request.body;
     if (name == undefined) {
@@ -81,47 +100,113 @@ app.put("/getting/pdf/", async (request, response) => {
 
 app.put("/all/pdf/", async (request, response) => {
     const {sort} = request.body;
-    const checkUserQuery = `SELECT * FROM fileDetails ORDER BY created_at ${sort == undefined ? "ASC" : sort};`;
-    connection.query(checkUserQuery, async(err, result) => {
-        if (err) throw err;
-        else {
-            response.send(result);
-        }
-    });
+    const collection = db.collection('fileDetails');
+    const result  = await collection.find().sort({created_at: 1}).toArray();
+    console.log(result);
+    
 });
 
 app.put("/upload/pdf", async (request, response) => {
-    const {filename, contentType, dateTime,tag} = request.body;
-    const checkUserQuery = `SELECT * FROM fileDetails WHERE filename = '${filename.slice(0,-4)}';`;
-    connection.query(checkUserQuery, async(err, result) => {
-        if (err) throw err;
-        else {
-            if (result.length !== 0) {
-                response.status(400);
-                response.send("file already exist");
-            }
-            else if (filename == undefined) {
-                response.status(400);
-                response.send("invalid file name");
-            }
-            else if (tag == undefined) {
-                response.status(400);
-                response.send("invalid tag name");
-            }
-            else {
-                const query = `
-                            INSERT INTO fileDetails (filename, created_at, tag_name)
-                            VALUES (
-                                '${filename.slice(0,-4)}',
-                                '${dateTime}',
-                                '${tag}'
-                            );`;
-                        connection.query(query, async(err, result) => {
-                            if (err) throw err;
-                            response.send(await putObjectUrl(filename, contentType));
-                        });
-            }
+    const {filename, contentType, dateTime,tags, size} = request.body;
+    const collection = db.collection('fileDetails');
+    const result = await collection.find({filename: filename.slice(0,-4)}).toArray();
+    console.log(result);
+    if (result.length !== 0)  {
+        response.status(400);
+        response.send("file already exist");
+    }
+    else if (filename == undefined) {
+            response.status(400);
+            response.send("invalid file name");
         }
-    });
+        else if (tags.length === 0) {
+            response.status(400);
+            response.send("Insert tag name");
+        }
+        else if (size == undefined) {
+            response.status(400);
+            response.send("invalide size");
+        }
+        else {
+            const result = await collection.insertOne({filename: filename.slice(0,-4),created_at: dateTime, tags: tags, size: size });
+            console.log(result);
+            response.send(await putObjectUrl(filename, contentType));
+        }
+    
 });
 
+
+
+// MYSQL DB CONNECTION 
+
+
+//const url = `mysql://${process.env.MYSQLUSER}:${process.env.MYSQLPASSWORD}@${process.env.MYSQLHOST}:${process.env.MYSQLPORT}/${process.env.MYSQLDATABASE}`
+//const connection = mysql.createConnection(url);  // Connect to MySQL
+//connection.connect((err) => {
+//    if (err) {
+//      console.error('Error connecting to MySQL: ' + err.stack);
+//      return;
+//    }
+//    console.log('Connected to MySQL as id ' + connection.threadId);
+//    app.listen(port, () => {
+//        console.log("server is running... :)");
+//      });
+//    
+//});
+
+
+
+//API for all pdf
+
+//const checkUserQuery = `SELECT * FROM fileDetails ORDER BY created_at ${sort == undefined ? "ASC" : sort};`;
+    //connection.query(checkUserQuery, async(err, result) => {
+    //    if (err) throw err;
+    //    else {
+    //        response.send(result);
+    //    }
+    //});
+
+
+// API for upload 
+
+//const checkUserQuery = `SELECT * FROM fileDetails WHERE filename = '${filename.slice(0,-4)}';`;
+    //connection.query(checkUserQuery, async(err, result) => {
+    //    if (err) throw err;
+    //    else {
+    //        if (result.length !== 0) {
+    //            response.status(400);
+    //            response.send("file already exist");
+    //        }
+    //        else if (filename == undefined) {
+    //            response.status(400);
+    //            response.send("invalid file name");
+    //        }
+    //        else if (tag == undefined) {
+    //            response.status(400);
+    //            response.send("invalid tag name");
+    //        }
+    //        else {
+    //            const query = `
+    //                        INSERT INTO fileDetails (filename, created_at, size)
+    //                        VALUES (
+    //                            '${filename.slice(0,-4)}',
+    //                            '${dateTime}',
+    //                            '${size}'
+    //                        );`;
+    //                    connection.query(query, async(err, result) => {
+    //                        if (err) throw err;
+    //                        else {
+    //                            const tagQuery = `INSERT INTO tags (name, tag_name) VALUES
+    //                                ${tags.map(each => {
+    //                                    if (each.id == tags.length) return {`('${filename}', '${each.value}')`};
+    //                                    return {`('${filename}', '${each.value}'),`};
+    //                                })}
+    //                                } 
+    //                            ;`;
+    //                            console.log(tagQuery);
+    //                         }
+    //                        response.send(await putObjectUrl(filename, contentType));
+    //                    });
+    //        }
+    //    }
+    //});
