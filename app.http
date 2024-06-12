@@ -7,7 +7,7 @@ Content-Type: application/json
 }
 
 ###
-GET http://localhost:4000/all/pdf/?sort=1&date=
+GET http://localhost:4000/all/pdf/?sort=1
 
 
 ###

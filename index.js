@@ -102,11 +102,14 @@ app.put("/getting/pdf/", async (request, response) => {
 app.get("/all/pdf/", async (request, response) => {
     const {sort, date} = request.query;
     const collection = db.collection('fileDetails');
-    
-    if (date !== "all") {
+    if (sort === undefined && date === undefined) {
+        const result  = await collection.find().toArray();
+        response.send(result);
+    }
+    else if (date !== "all") {
         const result  = await collection.find({created_at: {$eq: format(date, "dd-MM-yyyy")}}).toArray();
         response.send(result);
-        }
+    }
     else {
             const result  = await collection.find().sort({created_at: parseInt(sort)}).toArray();
             response.send(result);
