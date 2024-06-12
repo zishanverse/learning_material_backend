@@ -5,6 +5,7 @@ const mysql = require('mysql2');
 const { S3Client, GetObjectCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
 const {getSignedUrl} = require("@aws-sdk/s3-request-presigner");
 const express = require("express");
+const {format} = require('date-fns');
 const { MongoClient } = require('mongodb');
 const uri = process.env.MONGODB;
 
@@ -99,10 +100,19 @@ app.put("/getting/pdf/", async (request, response) => {
 });
 
 app.get("/all/pdf/", async (request, response) => {
-    const {sort} = request.query;
+    const {sort, date} = request.query;
     const collection = db.collection('fileDetails');
-    const result  = await collection.find().sort({created_at: parseInt(sort)}).toArray();
-    response.send(result);
+    console.log(date);
+    
+    if (date !== "all") {
+        const result  = await collection.find({created_at: {$eq: format(date, "dd-MM-yyyy")}}).toArray();
+        response.send(result);
+        }
+    else {
+            const result  = await collection.find().sort({created_at: parseInt(sort)}).toArray();
+            response.send(result);
+
+    }
 });
 
 app.put("/upload/pdf", async (request, response) => {
@@ -127,7 +137,7 @@ app.put("/upload/pdf", async (request, response) => {
             response.send("invalide size");
         }
         else {
-            const result = await collection.insertOne({filename: filename.slice(0,-4),created_at: dateTime, tags: tags, size: size });
+            const result = await collection.insertOne({filename: filename.slice(0,-4),created_at: format(dateTime, "dd-MM-yyyy"), tags: tags, size: size });
             console.log(result);
             response.send(await putObjectUrl(filename, contentType));
         }
