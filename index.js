@@ -2,7 +2,7 @@ require("dotenv").config();
 const port = process.env.PORT;
 const cors = require("cors");
 const mysql = require('mysql2');
-const { S3Client, GetObjectCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
+const { S3Client, GetObjectCommand, PutObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
 const {getSignedUrl} = require("@aws-sdk/s3-request-presigner");
 const express = require("express");
 const {format} = require('date-fns');
@@ -84,6 +84,15 @@ async function putObjectUrl(filename, contentType) {
     return url;
 }
 
+async function deleteObject(filename) {
+    const command = new DeleteObjectCommand({
+        Bucket: "leaning-pdf",
+        Key: `teacher/upload/${filename.concat(".pdf")}`
+    });
+    const url = await client.send(command);
+    return url;
+}
+
 
 
 
@@ -145,6 +154,28 @@ app.put("/upload/pdf", async (request, response) => {
         }
     
 });
+
+app.delete("/delete", async (req, res) => {
+    const {name} = req.query;
+    const collection = db.collection('fileDetails');
+    const result = await collection.find({filename: name}).toArray();
+    if (name === undefined) {
+        res.status(400);
+        res.send("Invalid filename");
+    }
+    else if (result.length == 0) {
+        res.status(400);
+        res.send("File Not Exist");
+    }
+    else {
+        await collection.deleteOne({filename: name});
+        await deleteObject(name);
+        res.send("Deleted Successfully");
+    }
+
+
+    
+})
 
 
 

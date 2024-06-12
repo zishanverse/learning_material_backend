@@ -7,7 +7,7 @@ Content-Type: application/json
 }
 
 ###
-GET http://localhost:4000/all/pdf/?sort=1
+GET http://localhost:4000/all/pdf/
 
 
 ###
@@ -21,3 +21,6 @@ Content-Type: application/json
     "tags": ["math", "class-10"],
     "size": "7mb"
 }
+
+###
+DELETE http://localhost:4000/delete?name=chapter1
