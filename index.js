@@ -127,7 +127,7 @@ app.get("/all/pdf/", async (request, response) => {
 });
 
 app.put("/upload/pdf", async (request, response) => {
-    const {filename, contentType, dateTime,tags, size} = request.body;
+    const {filename, contentType, dateTime,tags, size, subject} = request.body;
     const collection = db.collection('fileDetails');
     const result = await collection.find({filename: filename.slice(0,-4)}).toArray();
     console.log(result);
@@ -148,7 +148,7 @@ app.put("/upload/pdf", async (request, response) => {
             response.send("invalide size");
         }
         else {
-            const result = await collection.insertOne({filename: filename.slice(0,-4),created_at: format(dateTime, "dd-MM-yyyy"), tags: tags, size: size });
+            const result = await collection.insertOne({filename: filename.slice(0,-4),created_at: format(dateTime, "dd-MM-yyyy"), tags: tags, size: size, subject });
             console.log(result);
             response.send(await putObjectUrl(filename, contentType));
         }
