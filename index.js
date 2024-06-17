@@ -148,7 +148,7 @@ app.put("/upload/pdf", async (request, response) => {
             response.send("invalide size");
         }
         else {
-            const result = await collection.insertOne({filename: filename.slice(0,-4),created_at: format(dateTime, "dd-MM-yyyy"), tags: tags, size: size, subject, marks, duration });
+            const result = await collection.insertOne({filename: filename.slice(0,-4),created_at: format(dateTime, "dd-MM-yyyy"), tags: tags, size: size, subject: subject, marks: marks, duration:duration });
             console.log(result);
             response.send(await putObjectUrl(filename, contentType));
         }
