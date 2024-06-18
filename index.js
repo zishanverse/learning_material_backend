@@ -127,7 +127,7 @@ app.get("/all/pdf/", async (request, response) => {
 });
 
 app.put("/upload/pdf", async (request, response) => {
-    const {filename, contentType, dateTime,tags, size, subject, marks, duration} = request.body;
+    const {filename, contentType, dateTime,tags, size, subject, marks, duration, description} = request.body;
     const collection = db.collection('fileDetails');
     const result = await collection.find({filename: filename.slice(0,-4)}).toArray();
     console.log(result);
@@ -147,8 +147,20 @@ app.put("/upload/pdf", async (request, response) => {
             response.status(400);
             response.send("invalide size");
         }
+        else if (marks == undefined) {
+            response.status(400);
+            response.send("invalide marks");
+        }
+        else if (duration == undefined) {
+            response.status(400);
+            response.send("invalide duration");
+        }
+        else if (description == undefined) {
+            response.status(400);
+            response.send("invalide description");
+        }
         else {
-            const result = await collection.insertOne({filename: filename.slice(0,-4),created_at: format(dateTime, "dd-MM-yyyy"), tags: tags, size: size, subject: subject, marks: marks, duration:duration });
+            const result = await collection.insertOne({filename: filename.slice(0,-4),created_at: dateTime, tags: tags, size: size, subject: subject, marks: marks, duration:duration, description: description });
             console.log(result);
             response.send(await putObjectUrl(filename, contentType));
         }
