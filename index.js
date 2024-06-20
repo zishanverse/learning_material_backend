@@ -59,14 +59,14 @@ const db = dbClient.db('learning-platform');
 
 
 //aws s3 connetion
-const client = new S3Client({ region: "ap-south-1", credentials: {
+const client = new S3Client({ region: process.env.AWS_REGION, credentials: {
     accessKeyId: process.env.ACCESSID,
     secretAccessKey: process.env.SECRETKEY
 } });
 
 async function getObjectUrl(key){ 
     const command = new GetObjectCommand({
-        Bucket: "leaning-pdf",
+        Bucket: process.env.AWS_S3_BUCKER_NAME,
         Key: `teacher/upload/${key}`
     });
     const url = await getSignedUrl(client, command);
@@ -76,7 +76,7 @@ async function getObjectUrl(key){
 
 async function putObjectUrl(filename, contentType) {
     const command = new PutObjectCommand({
-        Bucket: "leaning-pdf",
+        Bucket: process.env.AWS_BUCKER_NAME,
         Key: `teacher/upload/${filename}`,
         ContentType: contentType,
     });
@@ -86,7 +86,7 @@ async function putObjectUrl(filename, contentType) {
 
 async function deleteObject(filename) {
     const command = new DeleteObjectCommand({
-        Bucket: "leaning-pdf",
+        Bucket: process.env.AWS_BUCKER_NAME,
         Key: `teacher/upload/${filename.concat(".pdf")}`
     });
     const url = await client.send(command);
@@ -189,78 +189,3 @@ app.delete("/delete", async (req, res) => {
     
 })
 
-
-
-// MYSQL DB CONNECTION 
-
-
-//const url = `mysql://${process.env.MYSQLUSER}:${process.env.MYSQLPASSWORD}@${process.env.MYSQLHOST}:${process.env.MYSQLPORT}/${process.env.MYSQLDATABASE}`
-//const connection = mysql.createConnection(url);  // Connect to MySQL
-//connection.connect((err) => {
-//    if (err) {
-//      console.error('Error connecting to MySQL: ' + err.stack);
-//      return;
-//    }
-//    console.log('Connected to MySQL as id ' + connection.threadId);
-//    app.listen(port, () => {
-//        console.log("server is running... :)");
-//      });
-//    
-//});
-
-
-
-//API for all pdf
-
-//const checkUserQuery = `SELECT * FROM fileDetails ORDER BY created_at ${sort == undefined ? "ASC" : sort};`;
-    //connection.query(checkUserQuery, async(err, result) => {
-    //    if (err) throw err;
-    //    else {
-    //        response.send(result);
-    //    }
-    //});
-
-
-// API for upload 
-
-//const checkUserQuery = `SELECT * FROM fileDetails WHERE filename = '${filename.slice(0,-4)}';`;
-    //connection.query(checkUserQuery, async(err, result) => {
-    //    if (err) throw err;
-    //    else {
-    //        if (result.length !== 0) {
-    //            response.status(400);
-    //            response.send("file already exist");
-    //        }
-    //        else if (filename == undefined) {
-    //            response.status(400);
-    //            response.send("invalid file name");
-    //        }
-    //        else if (tag == undefined) {
-    //            response.status(400);
-    //            response.send("invalid tag name");
-    //        }
-    //        else {
-    //            const query = `
-    //                        INSERT INTO fileDetails (filename, created_at, size)
-    //                        VALUES (
-    //                            '${filename.slice(0,-4)}',
-    //                            '${dateTime}',
-    //                            '${size}'
-    //                        );`;
-    //                    connection.query(query, async(err, result) => {
-    //                        if (err) throw err;
-    //                        else {
-    //                            const tagQuery = `INSERT INTO tags (name, tag_name) VALUES
-    //                                ${tags.map(each => {
-    //                                    if (each.id == tags.length) return {`('${filename}', '${each.value}')`};
-    //                                    return {`('${filename}', '${each.value}'),`};
-    //                                })}
-    //                                } 
-    //                            ;`;
-    //                            console.log(tagQuery);
-    //                         }
-    //                        response.send(await putObjectUrl(filename, contentType));
-    //                    });
-    //        }
-    //    }
-    //});
