@@ -126,7 +126,7 @@ app.get("/all/pdf/", async (request, response) => {
     }
 });
 
-app.put("/upload/pdf", async (request, response) => {
+app.post("/upload/pdf", async (request, response) => {
     const {filename, contentType, dateTime,tags, size, subject, marks, duration, description} = request.body;
     const collection = db.collection('fileDetails');
     const result = await collection.find({filename: filename.slice(0,-4)}).toArray();
