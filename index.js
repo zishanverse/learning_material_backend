@@ -60,13 +60,13 @@ const db = dbClient.db('learning-platform');
 
 //aws s3 connetion
 const client = new S3Client({ region: process.env.AWS_REGION, credentials: {
-    accessKeyId: process.env.ACCESSID,
-    secretAccessKey: process.env.SECRETKEY
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
 } });
 
 async function getObjectUrl(key){ 
     const command = new GetObjectCommand({
-        Bucket: process.env.AWS_S3_BUCKER_NAME,
+        Bucket: `${process.env.AWS_S3_BUCKET_NAME}`,
         Key: `teacher/upload/${key}`
     });
     const url = await getSignedUrl(client, command);
@@ -99,8 +99,8 @@ async function deleteObject(filename) {
 
 
 // Apis 
-app.put("/getting/pdf/", async (request, response) => {
-    const {name} = request.body;
+app.get("/getting/pdf/", async (request, response) => {
+    const {name} = request.query;
     if (name == undefined) {
         response.status(400);
         response.send("invalid file name");
