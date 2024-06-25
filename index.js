@@ -59,7 +59,7 @@ const db = dbClient.db('learning-platform');
 
 
 //aws s3 connetion
-const client = new S3Client({ region: process.env.AWS_REGION, credentials: {
+const client = new S3Client({ region: "ap-south-1", credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
 } });
@@ -105,7 +105,8 @@ app.get("/getting/pdf/", async (request, response) => {
         response.status(400);
         response.send("invalid file name");
     }
-    response.send(await getObjectUrl(name));
+    const url = await getObjectUrl(name)
+    response.send(url);
 });
 
 app.get("/all/pdf/", async (request, response) => {
