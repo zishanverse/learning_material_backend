@@ -76,7 +76,7 @@ async function getObjectUrl(key){
 
 async function putObjectUrl(filename, contentType) {
     const command = new PutObjectCommand({
-        Bucket: process.env.AWS_BUCKER_NAME,
+        Bucket: process.env.AWS_S3_BUCKET_NAME,
         Key: `teacher/upload/${filename}`,
         ContentType: contentType,
     });
@@ -86,7 +86,7 @@ async function putObjectUrl(filename, contentType) {
 
 async function deleteObject(filename) {
     const command = new DeleteObjectCommand({
-        Bucket: process.env.AWS_BUCKER_NAME,
+        Bucket: process.env.AWS_S3_BUCKET_NAME,
         Key: `teacher/upload/${filename.concat(".pdf")}`
     });
     const url = await client.send(command);
@@ -130,7 +130,7 @@ app.post("/upload/pdf", async (request, response) => {
     const {filename, contentType, dateTime,tags, size, subject, marks, duration, description} = request.body;
     const collection = db.collection('fileDetails');
     const result = await collection.find({filename: filename.slice(0,-4)}).toArray();
-    console.log(result);
+    
     if (result.length !== 0)  {
         response.status(400);
         response.send("file already exist");
@@ -161,7 +161,7 @@ app.post("/upload/pdf", async (request, response) => {
         }
         else {
             const result = await collection.insertOne({filename: filename.slice(0,-4),created_at: dateTime, tags: tags, size: size, subject: subject, marks: marks, duration:duration, description: description });
-            console.log(result);
+            
             response.send(await putObjectUrl(filename, contentType));
         }
     
